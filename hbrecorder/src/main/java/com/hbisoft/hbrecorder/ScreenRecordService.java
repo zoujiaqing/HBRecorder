@@ -38,6 +38,8 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.arthenica.ffmpegkit.FFmpegKit;
+
 import static com.hbisoft.hbrecorder.Constants.ERROR_KEY;
 import static com.hbisoft.hbrecorder.Constants.ERROR_REASON_KEY;
 import static com.hbisoft.hbrecorder.Constants.MAX_FILE_SIZE_REACHED_ERROR;
@@ -274,69 +276,59 @@ public class ScreenRecordService extends Service {
                 }
 
                 //Init VirtualDisplay
-                try {
-                    initVirtualDisplay();
-                } catch (Exception e) {
-                    ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
-                    Bundle bundle = new Bundle();
-                    bundle.putString(ERROR_REASON_KEY, Log.getStackTraceString(e));
-                    if (receiver != null) {
-                        receiver.send(Activity.RESULT_OK, bundle);
-                    }
-                }
-
-                mMediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
-                    @Override
-                    public void onError(MediaRecorder mediaRecorder, int what, int extra) {
-                        if (what == 268435556 && hasMaxFileBeenReached) {
-                            // Benign error b/c recording is too short and has no frames. See SO: https://stackoverflow.com/questions/40616466/mediarecorder-stop-failed-1007
-                            return;
-                        }
-                        ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
-                        Bundle bundle = new Bundle();
-                        bundle.putInt(ERROR_KEY, SETTINGS_ERROR);
-                        bundle.putString(ERROR_REASON_KEY, String.valueOf(what));
-                        if (receiver != null) {
-                            receiver.send(Activity.RESULT_OK, bundle);
-                        }
-                    }
-                });
-
-                mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-                    @Override
-                    public void onInfo(MediaRecorder mr, int what, int extra) {
-                        if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
-                            hasMaxFileBeenReached = true;
-                            Log.i(TAG, String.format(Locale.US, "onInfoListen what : %d | extra %d", what, extra));
-                            ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
-                            Bundle bundle = new Bundle();
-                            bundle.putInt(ERROR_KEY, MAX_FILE_SIZE_REACHED_ERROR);
-                            bundle.putString(ERROR_REASON_KEY, getString(R.string.max_file_reached));
-                            if (receiver != null) {
-                                receiver.send(Activity.RESULT_OK, bundle);
-                            }
-                        }
-                    }
-                });
+//                try {
+//                    initVirtualDisplay();
+//                } catch (Exception e) {
+//                    ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
+//                    Bundle bundle = new Bundle();
+//                    bundle.putString(ERROR_REASON_KEY, Log.getStackTraceString(e));
+//                    if (receiver != null) {
+//                        receiver.send(Activity.RESULT_OK, bundle);
+//                    }
+//                }
+//
+//                mMediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
+//                    @Override
+//                    public void onError(MediaRecorder mediaRecorder, int what, int extra) {
+//                        if (what == 268435556 && hasMaxFileBeenReached) {
+//                            // Benign error b/c recording is too short and has no frames. See SO: https://stackoverflow.com/questions/40616466/mediarecorder-stop-failed-1007
+//                            return;
+//                        }
+//                        ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
+//                        Bundle bundle = new Bundle();
+//                        bundle.putInt(ERROR_KEY, SETTINGS_ERROR);
+//                        bundle.putString(ERROR_REASON_KEY, String.valueOf(what));
+//                        if (receiver != null) {
+//                            receiver.send(Activity.RESULT_OK, bundle);
+//                        }
+//                    }
+//                });
+//
+//                mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+//                    @Override
+//                    public void onInfo(MediaRecorder mr, int what, int extra) {
+//                        if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+//                            hasMaxFileBeenReached = true;
+//                            Log.i(TAG, String.format(Locale.US, "onInfoListen what : %d | extra %d", what, extra));
+//                            ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
+//                            Bundle bundle = new Bundle();
+//                            bundle.putInt(ERROR_KEY, MAX_FILE_SIZE_REACHED_ERROR);
+//                            bundle.putString(ERROR_REASON_KEY, getString(R.string.max_file_reached));
+//                            if (receiver != null) {
+//                                receiver.send(Activity.RESULT_OK, bundle);
+//                            }
+//                        }
+//                    }
+//                });
 
                 //Start Recording
                 try {
-                    mMediaRecorder.start();
-                    ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
-                    Bundle bundle = new Bundle();
-                    bundle.putInt(ON_START_KEY, ON_START);
-                    if (receiver != null) {
-                        receiver.send(Activity.RESULT_OK, bundle);
-                    }
+                    SRTStreamer srtStreamer = new SRTStreamer(getBaseContext(), mMediaProjection, mScreenWidth, mScreenHeight);
+                    srtStreamer.startStreaming();
+                    Log.d(TAG, "SRTStreamer: " + " SRT Streamer is running.");
                 } catch (Exception e) {
-                    // From the tests I've done, this can happen if another application is using the mic or if an unsupported video encoder was selected
-                    ResultReceiver receiver = intent.getParcelableExtra(ScreenRecordService.BUNDLED_LISTENER);
-                    Bundle bundle = new Bundle();
-                    bundle.putInt(ERROR_KEY, SETTINGS_ERROR);
-                    bundle.putString(ERROR_REASON_KEY, Log.getStackTraceString(e));
-                    if (receiver != null) {
-                        receiver.send(Activity.RESULT_OK, bundle);
-                    }
+                    Log.d(TAG, "SRTStreamer: " + " SRT Streamer can't work.");
+                    Log.e(TAG, "Stack trace: ", e);  // 这里打印完整的堆栈信息
                 }
             }
         } else {
