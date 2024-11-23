@@ -38,11 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Objects;
 
-import com.arthenica.ffmpegkit.FFmpegKit;
-
-import static com.hbisoft.hbrecorder.Constants.ERROR_KEY;
 import static com.hbisoft.hbrecorder.Constants.ERROR_REASON_KEY;
-import static com.hbisoft.hbrecorder.Constants.MAX_FILE_SIZE_REACHED_ERROR;
 import static com.hbisoft.hbrecorder.Constants.MAX_FILE_SIZE_KEY;
 import static com.hbisoft.hbrecorder.Constants.NO_SPECIFIED_MAX_SIZE;
 import static com.hbisoft.hbrecorder.Constants.ON_COMPLETE;
@@ -51,9 +47,6 @@ import static com.hbisoft.hbrecorder.Constants.ON_PAUSE;
 import static com.hbisoft.hbrecorder.Constants.ON_PAUSE_KEY;
 import static com.hbisoft.hbrecorder.Constants.ON_RESUME;
 import static com.hbisoft.hbrecorder.Constants.ON_RESUME_KEY;
-import static com.hbisoft.hbrecorder.Constants.ON_START;
-import static com.hbisoft.hbrecorder.Constants.ON_START_KEY;
-import static com.hbisoft.hbrecorder.Constants.SETTINGS_ERROR;
 
 /**
  * Created by HBiSoft on 13 Aug 2019
@@ -323,7 +316,7 @@ public class ScreenRecordService extends Service {
 
                 //Start Recording
                 try {
-                    SRTStreamer srtStreamer = new SRTStreamer(getBaseContext(), mMediaProjection, mScreenWidth, mScreenHeight);
+                    WebRTCStreamer srtStreamer = new WebRTCStreamer(getBaseContext(), mMediaProjection, mScreenWidth, mScreenHeight);
                     srtStreamer.startStreaming();
                     Log.d(TAG, "SRTStreamer: " + " SRT Streamer is running.");
                 } catch (Exception e) {
